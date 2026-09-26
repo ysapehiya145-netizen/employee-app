@@ -1,0 +1,26 @@
+{
+  "name": "ysapehiya_code",
+  "version": "1.0.0",
+  "description": "Node app",
+  "homepage": "https://github.com/ysapehiya145-netizen/ysapehiya_code#readme",
+  "bugs": {
+    "url": "https://github.com/ysapehiya145-netizen/ysapehiya_code/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ysapehiya145-netizen/ysapehiya_code.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.4.0",
+    "prom-client": "^15.1.0"
+  }
+}

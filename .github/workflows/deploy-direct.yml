@@ -1,0 +1,35 @@
+name: Deploy to EC2 with Docker Compose
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "docker-compose.yaml"
+      - ".github/workflows/deploy-direct.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -eu
+            repo_url=https://github.com/ysapehiya145-netizen/employee-app.git
+            if [ ! -d "$HOME/employee-app/.git" ]; then
+              git clone "$repo_url" "$HOME/employee-app"
+            else
+              git -C "$HOME/employee-app" pull --ff-only origin main
+            fi
+            cd "$HOME/employee-app"
+            test -f .env
+            docker compose version
+            sudo docker rm -f employee-app 2>/dev/null || true
+            sudo docker compose up -d --build
+            sudo docker compose ps

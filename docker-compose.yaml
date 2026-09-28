@@ -1,23 +1,34 @@
 services:
   mongo:
     image: mongo:7
+    networks:
+      employee-net:
+        aliases: [mongodb]
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?Set MONGO_ROOT_USERNAME in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env}
     volumes: [mongo-data:/data/db]
   mongo-express:
     image: mongo-express
-    ports: ["8081:8081"]
+    ports: ["127.0.0.1:${MONGO_EXPRESS_PORT:-8081}:8081"]
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: password
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongo:27017/
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME:?Set MONGO_ROOT_USERNAME in .env}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/?authSource=admin
+      ME_CONFIG_BASICAUTH_ENABLED: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:?Set MONGO_EXPRESS_USERNAME in .env}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:?Set MONGO_EXPRESS_PASSWORD in .env}
     depends_on: [mongo]
+    networks: [employee-net]
   app:
     build: ./app
     ports: ["3000:3000"]
     environment:
-      MONGO_URL: mongodb://admin:password@mongo:27017/company?authSource=admin
+      MONGO_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/company?authSource=admin
     depends_on: [mongo]
+    networks: [employee-net]
+networks:
+  employee-net:
+    name: employee-net
 volumes:
   mongo-data:

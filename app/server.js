@@ -35,6 +35,33 @@ app.get("/employees", async (req, res) => {
   reqCounter.inc({ method: "GET", route: "/employees" });
   res.json(await Employee.find());
 });
+app.get("/employees/:id", async (req, res) => {
+  reqCounter.inc({ method: "GET", route: "/employees/:id" });
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid employee ID" });
+  }
+  const employee = await Employee.findById(req.params.id);
+  if (!employee) return res.status(404).json({ error: "Employee not found" });
+  res.json(employee);
+});
+app.put("/employees/:id", async (req, res) => {
+  reqCounter.inc({ method: "PUT", route: "/employees/:id" });
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid employee ID" });
+  }
+  const fields = ["name", "email", "role", "department"];
+  const updates = Object.fromEntries(
+    fields
+      .filter((field) => req.body[field] !== undefined)
+      .map((field) => [field, req.body[field]])
+  );
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "Provide at least one employee field to update" });
+  }
+  const employee = await Employee.findByIdAndUpdate(req.params.id, updates, { new: true });
+  if (!employee) return res.status(404).json({ error: "Employee not found" });
+  res.json(employee);
+});
 app.get("/health", (req, res) => res.send("ok"));
 app.get("/metrics", async (req, res) => {
   res.set("Content-Type", client.register.contentType);
